@@ -1,0 +1,385 @@
+---
+title: "Qué tipos de personas se recuperaron? ó  Quiénes son más propensos para contagiarse con COVID-19?"
+author: "Varinia Stephany Tarqui Lunda"
+date: "18/8/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+En primer lugar se debe cargar las librerías que se utilizarán en el presente trabajo.
+
+```{r}
+library(tidyverse)
+#install.packages('ggthemes', dependencies = TRUE)
+#library("ggthemes")
+```
+
+# Número de Casos BOLIVIA
+####  A partir del 10 de Marzo de 2020
+*** 
+
+### Importar datos 
+
+- Se debe buscar la ruta del archivo de csv.
+
+```{r}
+## Commented for RStudio
+#file.choose()
+```
+
+- Es un archivo csv con punto y coma, entonces se elige read_csv2.
+
+```{r}
+library(readr)
+Casos_Bolivia <- read_delim("CasosBolivia.csv", 
+    ";", escape_double = FALSE, trim_ws = TRUE)
+View(CasosDepBolivia)
+
+#Casos_Bolivia <- read_csv2("/cloud/project/CasosBolivia.csv")
+```
+
+- Se observa el dataset.
+
+```{r}
+head(Casos_Bolivia)
+```
+
+### Gráfico
+
+```{r}
+df <- Casos_Bolivia  %>%
+  select(DateTime, Confirmados, Recuperados, Muertes)  %>%
+  gather(key = "Estado", value = "Número de casos", -DateTime)
+head(df, 5)
+```
+
+```{r}
+ggplot(df, aes(x = DateTime, y = `Número de casos`)) +
+  geom_line(aes(color = Estado), size = 1) +
+  scale_color_manual(values = c("#a31c17", "#695025", "#14e0b8"))+
+   labs(
+    title = "Número de casos Bolivia",
+    subtitle = "A partir del 10 de Marzo de 2020",
+    caption = "Datos de COVID-19 GAMLP (Bolivia)"
+  ) +
+  theme(legend.position = "bottom")
+```
+
+
+# Número de casos confirmados BOLIVIA por Departamento
+####  A partir del 10 de Marzo de 2020
+*** 
+
+### Importar datos 
+
+```{r}
+CasosDep_Bolivia <- read_csv2("CasosDepBolivia.csv")
+# CasosDep_Bolivia <- read_csv2("F:\\Clases Virtuales\\R-Ladies La Paz\\Datathon\\R scripts\\Datasets\\Covid-19 Bolivia__Web\\CasosDepBolivia.csv")
+```
+
+```{r}
+head(CasosDep_Bolivia)
+summary(CasosDep_Bolivia)
+```
+
+```{r}
+df_1 <- CasosDep_Bolivia %>%
+  select(DateTime, Beni,Chuquisaca, Cochabamba, `La Paz`, Oruro, Pando, Potosi, `Santa Cruz`, Tarija) %>%
+  gather(key = "Departamento", value = "Número de casos", -DateTime)
+head(df_1, 5)
+```
+
+### Gráfico
+
+```{r}
+ggplot(df_1, aes(x = DateTime, y = `Número de casos`)) +
+  geom_line(aes(color = Departamento), size = 1) +
+  scale_color_manual(values = c("#e010a2", "#9e1c9e", "#05f5b9", "#ab2415", "#1ed0d6", "#fcea23","#f2b007", "#5df70a", "#b572b4" )) +
+  labs(
+    title = "Número de casos confirmados Bolivia por Departamento",
+    subtitle = "A partir del 10 de Marzo de 2020",
+    caption = "Datos de COVID-19 GAMLP (Bolivia)"
+  ) +
+  theme(legend.position = "bottom")
+```
+
+
+
+##EXTRA_Pregunta 2
+
+```{r}
+## Commented for RStudio CLoud
+#file.choose()
+```
+
+```{r}
+TestDiarios <- read_csv("COVID19_TESTDIARIOS.csv")
+#TestDiarios <- read_csv("F:\\Clases Virtuales\\R-Ladies La Paz\\Datathon\\R scripts\\Datasets\\MuyWaso\\TestDiarios.csv")
+```
+
+```{r}
+#head(TestDiarios)
+summary(TestDiarios)
+```
+
+```{r}
+df_Test <- TestDiarios %>%
+  select(Fecha:`Total Bolivia`) %>%
+  gather(key = "Departamento", value = "Número de pruebas", -Fecha)
+head(df_Test, 5)
+
+```
+
+### Gráfico
+
+```{r}
+ggplot(df_Test, aes(x = Fecha, y = `Número de pruebas`)) +
+  geom_line(aes(color = Departamento), size = 1) +
+  scale_color_manual(values = c("#e010a2", "#9e1c9e", "#05f5b9", "#ab2415", "#1ed0d6", "#fcea23","#f2b007", "#5df70a", "#b572b4", "#3f3569"))+
+  labs(
+    title = "Número de pruebas diarias en Bolivia por Departamento",
+    subtitle = "A partir del 21 de Marzo de 2020",
+    caption = "Datos de Muy Waso"
+  ) +
+  theme(legend.position = "bottom")
+```
+
+
+
+# Unión de 2 datasets: Covid19_Bolivia & Covid19_Tests
+```{r}
+
+summary(CasosDep_Bolivia)
+summary(TestDiarios)
+  
+```
+DataSet: CasosDep_Bolivia / Renombramos DateTime por Fecha y asignamos nuevos nombres a las columnas
+```{r}
+colnames(CasosDep_Bolivia)
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "DateTime"] <- "Fecha"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Beni"] <- "Beni_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Chuquisaca"] <- "Chuquisaca_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "La Paz"] <- "LaPaz_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Oruro"] <- "Oruro_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Pando"] <- "Pando_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Potosi"] <- "Potosi_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Santa Cruz"] <- "SantaCruz_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Tarija"] <- "Tarija_COVID19"
+names(CasosDep_Bolivia)[names(CasosDep_Bolivia) == "Cochabamba"] <- "Cochabamba_COVID19"
+CasosDep_Bolivia 
+df=data.frame(
+     x1=c(1,0,0,NA,0,1,1,NA,0,1),
+     x2=c(1,1,NA,1,1,0,NA,NA,0,1),
+     x3=c(0,1,0,1,1,0,NA,NA,0,1),
+     x4=c(1,0,NA,1,0,0,NA,0,0,1),
+     x5=c(1,1,NA,1,1,1,NA,1,0,1))
+CasosDep_Bolivia %>% select('Beni_COVID19':'Tarija_COVID19') %>% rowSums(na.rm=TRUE) -> CasosDep_Bolivia$Total_COVID19
+head(CasosDep_Bolivia)
+
+
+```
+DataSet: TestDiarios / Asignamos nuevos nombres a las columnas
+```{r}
+colnames(TestDiarios)
+names(TestDiarios)[names(TestDiarios) == "DateTime"] <- "Fecha"
+names(TestDiarios)[names(TestDiarios) == "Beni"] <- "Beni_TEST"
+names(TestDiarios)[names(TestDiarios) == "Chuquisaca"] <- "Chuquisaca_TEST"
+names(TestDiarios)[names(TestDiarios) == "La Paz"] <- "LaPaz_TEST"
+names(TestDiarios)[names(TestDiarios) == "Oruro"] <- "Oruro_TEST"
+names(TestDiarios)[names(TestDiarios) == "Pando"] <- "Pando_TEST"
+names(TestDiarios)[names(TestDiarios) == "Potosí"] <- "Potosi_TEST"
+names(TestDiarios)[names(TestDiarios) == "Santa Cruz"] <- "SantaCruz_TEST"
+names(TestDiarios)[names(TestDiarios) == "Tarija"] <- "Tarija_TEST"
+names(TestDiarios)[names(TestDiarios) == "Cochabamba"] <- "Cochabamba_TEST"
+names(TestDiarios)[names(TestDiarios) == "Total Bolivia"] <- "Total_TEST"
+TestDiarios
+```
+## Graficando Tests + casos covid
+```{r}
+casoscovid19_tests <- merge(CasosDep_Bolivia,TestDiarios, by.x="Fecha", by.y="Fecha", all.x=TRUE, all.y=TRUE)
+summary(casoscovid19_tests)
+```
+
+
+## Resultados de La Paz
+```{r}
+ggplot(casoscovid19_tests, aes(Fecha, LaPaz_TEST)) +
+ geom_point(aes(color = LaPaz_COVID19)) +
+ geom_smooth(method ="lm") +
+ coord_cartesian() +
+ scale_color_gradient() +
+ theme_bw()
+
+#ggplot(casoscovid19_tests, aes(Fecha, LaPaz_COVID19)) +
+# geom_point(aes(color = LaPaz_TEST)) +
+# geom_smooth(method ="lm") +
+# coord_cartesian() +
+# scale_color_gradient() +
+# theme_bw()
+```
+
+## Resultados de Santa Cruz
+```{r}
+ggplot(casoscovid19_tests, aes(Fecha, SantaCruz_TEST)) +
+ geom_point(aes(color = SantaCruz_COVID19)) +
+ geom_smooth(method ="lm") +
+ coord_cartesian() +
+ scale_color_gradient() +
+ theme_bw()
+
+#ggplot(casoscovid19_tests, aes(Fecha, SantaCruz_COVID19)) +
+# geom_point(aes(color = SantaCruz_TEST)) +
+# geom_smooth(method ="lm") +
+# coord_cartesian() +
+# scale_color_gradient() +
+# theme_bw()
+```
+
+
+## Resultados de Cochabamba
+```{r}
+ggplot(casoscovid19_tests, aes(Fecha, Cochabamba_TEST)) +
+ geom_point(aes(color = Cochabamba_COVID19)) +
+ geom_smooth(method ="lm") +
+ coord_cartesian() +
+ scale_color_gradient() +
+ theme_bw()
+
+#ggplot(casoscovid19_tests, aes(Fecha, Beni_COVID19)) +
+# geom_point(aes(color = Beni_TEST)) +
+# geom_smooth(method ="lm") +
+# coord_cartesian() +
+# scale_color_gradient() +
+# theme_bw()
+
+```
+
+## Resultados de Bolivia
+```{r}
+ggplot(casoscovid19_tests, aes(Fecha, Total_TEST)) +
+ geom_point(aes(color = Total_COVID19)) +
+ geom_smooth(method ="lm") +
+ coord_cartesian() +
+ scale_color_gradient() +
+ theme_bw()
+```
+
+# Gráfica con toda la información de los departamentos
+Realizamos el mutate join
+
+```{r}
+ggplot(data = df_Test) +
+  geom_point(mapping = aes(x = Fecha, y = `Número de pruebas`,color = `Número de pruebas`)) +
+  geom_smooth(mapping = aes(x = Fecha, y = `Número de pruebas`)) +
+  coord_cartesian() +
+  scale_color_gradient() +
+  theme_bw()+
+  facet_wrap(~ Departamento, nrow = 4)
+
+```
+## 
+
+## Covariación 
+Puedes identificar la covariación como un patrón en los puntos. Por ejemplo, puedes observar la relación exponencial entre los casos de COVID-19 y el la cantidad de tests.
+```{r}
+
+
+ggplot(data = casoscovid19_tests) + 
+  geom_point(mapping = aes(x = LaPaz_COVID19, y = LaPaz_TEST), alpha = 30 / 100)
+
+ggplot(data = casoscovid19_tests) +
+  geom_bin2d(mapping = aes(x = LaPaz_COVID19, y = LaPaz_TEST))
+
+#install.packages("hexbin")
+ggplot(data = casoscovid19_tests) +
+  geom_hex(mapping = aes(x = LaPaz_COVID19, y = LaPaz_TEST)) +
+  labs(title="Dividiendo el plano en regular hexagonos", 
+         subtitle="Subtitulo del gráfico", 
+         caption="Fuente: pmoracho.github.io", 
+         y="x", 
+         x="y") +
+  theme_light()
+```
+# Model
+
+```{r}
+library(modelr)
+
+casoscovid19_tests %>%
+  ggplot(aes(Fecha, LaPaz_COVID19)) +
+  geom_line() +
+  ggtitle("Datos completos = ")
+
+nz_mod <- lm(Fecha ~ LaPaz_COVID19, data = casoscovid19_tests)
+casoscovid19_tests %>%
+  add_predictions(nz_mod) %>%
+  ggplot(aes(Fecha, pred)) +
+  geom_line() +
+  ggtitle("Tendencia lineal + ")
+
+casoscovid19_tests %>%
+  add_residuals(nz_mod) %>%
+  ggplot(aes(Fecha, resid)) +
+  geom_hline(yintercept = 0, colour = "white", size = 3) +
+  geom_line() +
+  ggtitle("Patrón restante")
+```
+
+```{r}
+library(modelr)
+
+casoscovid19_tests %>%
+  ggplot(aes(Fecha, LaPaz_TEST)) +
+  geom_line() +
+  ggtitle("Datos completos = ")
+
+nz_mod <- lm(Fecha ~ LaPaz_TEST, data = casoscovid19_tests)
+casoscovid19_tests %>%
+  add_predictions(nz_mod) %>%
+  ggplot(aes(Fecha, pred)) +
+  geom_line() +
+  ggtitle("Tendencia lineal + ")
+
+casoscovid19_tests %>%
+  add_residuals(nz_mod) %>%
+  ggplot(aes(Fecha, resid)) +
+  geom_hline(yintercept = 0, colour = "white", size = 3) +
+  geom_line() +
+  ggtitle("Patrón restante")
+```
+
+
+# Preparando para la gráfica Global
+```{r}
+plain_data <- casoscovid19_tests %>%
+  select(Fecha,
+        Beni_TEST,
+        Chuquisaca_TEST,
+        LaPaz_TEST,
+        Oruro_TEST,
+        Pando_TEST,
+        Potosi_TEST,
+        SantaCruz_TEST,
+        Tarija_TEST,
+        Cochabamba_TEST,
+        Beni_COVID19,
+        Chuquisaca_COVID19,
+        LaPaz_COVID19,
+        Oruro_COVID19,
+        Pando_COVID19,
+        Potosi_COVID19,
+        SantaCruz_COVID19,
+        Tarija_COVID19,
+        Cochabamba_COVID19) %>%
+  gather(key = "Departamento", value = "Número de casos", -Fecha)
+head(df_1, 5)
+View(plain_data)
+```
+
+
+
+
+
