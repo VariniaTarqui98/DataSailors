@@ -1,0 +1,261 @@
+---
+title: "ANALISIS EXPLORATORIO DE DATOS DEL COVID19"
+author: "Veronica Gomez"
+date: "10/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# El departamento x con más personas aseguradas tuvieron más recuperados. (V/F)
+
+Vamos hacer un analisis exploratorio de datos:
+
+Analisis de dos variables cualitativas
+  * asegurados
+  * recuperados del COVID19
+si las mismas tienen correlacion entre si 
+Data Sets : INE_Encuenta nacional de hogares -->EH2019_Pers_csv.csv
+Data Sets : COVID19 Recuperados por departamento
+Fecha : 10/03/2020 al 03/09/2020
+            nmero-de-casos-beni-a-pa.csv
+            nmero-de-casos-chuquisac.csv
+            nmero-de-casos-cochabamb.csv
+            nmero-de-casos-la-paz-a.csv
+            nmero-de-casos-oruro-a-p.csv
+            nmero-de-casos-pando-a-p.csv
+            nmero-de-casos-potos-a-p.csv
+            nmero-de-casos-santa-cru.csv
+            nmero-de-casos-tarija-a.csv
+
+## Cargando Librerias
+
+Cargando librerias
+
+```{r}
+library(tidyverse)
+library(readr)
+library(magrittr)
+library(dplyr)
+```
+
+## IMPORTAR DATOS DATA SET DATA SET ENCUESTA NACIONAL DE HOGARES
+INE_Encuenta nacional de hogares -->EH2019_Pers_csv.csv
+
+```{r pressure, echo=FALSE}
+library(readr)
+data_encuesta_nacional_hogares <- read_delim("C:/Users/evolucion/Documents/dataThonR/CienciaDatosCovid19/Data/INE/EH2019_Pers_csv.csv",";", escape_double = FALSE, trim_ws = TRUE)
+
+```
+
+Mostrar los primeros 10 observaciones
+```{r}
+head(data_encuesta_nacional_hogares)
+```
+## ORDENAR DATA SET INE ENCUESTA NACIONAL DE HOGARES
+
+```{r}
+
+```
+
+## TRANSFORMANDO DATA INE ENCUESTA NACIONAL DE HOGARES
+Reduciendo las observaciones a aquellas que sean de nuestro interes
+
+#OBTENIENDO DATA DE PERSONAS NO ASEGURADAS POR DE DEPARTAMENTO
+
+```{r}
+
+data_no_asegurados <- data_encuesta_nacional_hogares %>% 
+  filter( s04a_04a == "6. Ninguno?") %>%
+  group_by(depto) %>% 
+   summarise(no_asegurados = (count = n()))
+
+head(data_no_asegurados,20)
+
+```
+
+#OBTENIENDO DATA DE PERSONAS ASEGURADOS POR DEPARTAMENTO
+
+```{r}
+
+data_asegurados <- data_encuesta_nacional_hogares %>% 
+  filter( s04a_04a != "6. Ninguno?") %>%
+  group_by(depto) %>% 
+   summarise(asegurados = (count = n()))
+
+head(data_asegurados,20)
+
+```
+#UNIENDO DATA ASEGURADOS Y NO ASEGURADOS
+
+```{r}
+data_seguros <- data_asegurados %>%
+  inner_join(data_no_asegurados, by = c("depto" = "depto"))
+
+data_seguros
+```
+
+# Adicionando columa Total Personas=asegurados + no_asegurados
+
+```{r}
+data_seguros_proporcion <-  data_seguros %>%
+  mutate( total_personas = asegurados + no_asegurados)
+```
+
+# Adicionando columna de proporcion de asegurados y no asegurados
+
+```{r}
+data_seguros_proporcion <-  data_seguros_proporcion %>%
+  mutate( proporcion_asegurados = (asegurados * 100)/total_personas) %>%
+  mutate( proporcion_no_asegurados = (no_asegurados * 100)/total_personas)
+
+data_seguros_proporcion[7,1] = "Potosi"
+
+head(data_seguros_proporcion,10)
+
+
+```
+
+#----------------------------------------------------------------------
+## CASOS COVID9 RECUPERADOS MUERTOS 
+Data Sets : COVID19 Recuperados por departamento
+Fecha : 10/03/2020 al 03/09/2020
+            nmero-de-casos-beni-a-pa.csv
+            nmero-de-casos-chuquisac.csv
+            nmero-de-casos-cochabamb.csv
+            nmero-de-casos-la-paz-a.csv
+            nmero-de-casos-oruro-a-p.csv
+            nmero-de-casos-pando-a-p.csv
+            nmero-de-casos-potos-a-p.csv
+            nmero-de-casos-santa-cru.csv
+            nmero-de-casos-tarija-a.csv
+
+```{r}
+depto = c("Beni", "Chuquisaca", "Cochabamba", "La Paz", "Oruro", "Pando", "Potosi", "Santa Cruz", "Tarija")
+confirmados = c(6753,5433,12559,31232,5086,2340,5861,40885,8632)
+recuperados = c(1084,2072,8520,12260,1946,381,1002,32823,3986)
+muertos = c(336,409,963,913,269,150,200,1890,213)
+
+data_covid9 <- data.frame(depto, confirmados, recuperados, muertos)
+data_covid9 <- tbl_df(data_covid9)
+
+data_covid9
+```
+
+#Adicionar columna tratamiento
+
+```{r}
+data_covid9 <- data_covid9%>%
+  mutate(tratamiento = confirmados - recuperados)
+
+data_covid9
+```
+#Adicionando columna de propocion recuperados y tratamiento
+
+```{r}
+data_covid9_proporcion <- data_covid9 %>%
+  mutate(proporcion_recuperados = (recuperados * 100)/confirmados) %>%
+  mutate(proporcion_tratamiento = (tratamiento *100)/confirmados)
+
+data_covid9_proporcion
+```
+
+#concertir el tipo de dato factor a chr
+
+```{r}
+
+data_covid9_proporcion$depto <- as.character(data_covid9_proporcion$depto)
+
+```
+
+#-----------------------------------------------------------
+##COMBINAR LOS DATA FRAMES data_covid9_proporcion Y data_seguros_proporcion
+
+```{r}
+
+data_covid9_seguros_proporcion <- data_covid9_proporcion %>%
+  inner_join(data_seguros_proporcion, by = c("depto" = "depto"))
+
+data_covid9_seguros_proporcion
+```
+
+##Transformando
+1.---- Reduciendo las observaciones a los campos de interes 
+
+```{r}
+data_covid9_seguros_depto <- data_covid9_seguros_proporcion %>%
+  select(depto, proporcion_recuperados, proporcion_tratamiento, proporcion_asegurados, proporcion_no_asegurados)
+
+data_covid9_seguros_depto
+```
+
+2.---- Reduciendo las observaciones a los campos de interes 
+
+```{r}
+data_covid9_seguros_depto_ <- data_covid9_seguros_proporcion %>%
+  select(depto, proporcion_recuperados, proporcion_asegurados)
+
+data_covid9_seguros_depto_
+```
+
+#----------------------------------------------
+#Transformando datos de la data data_propor_covid9_asegurados_departamento_
+1.----
+```{r}
+data_covid9_seguros_depto_1 <- data_covid9_seguros_depto  %>%
+  select(depto, proporcion_recuperados, proporcion_tratamiento, proporcion_asegurados, proporcion_no_asegurados)  %>%
+  gather(key = "Casos", value = "total_casos", -depto)
+
+data_covid9_seguros_depto_1
+```
+2.----
+```{r}
+data_covid9_seguros_depto_2 <- data_covid9_seguros_depto  %>%
+  select(depto, proporcion_recuperados,proporcion_asegurados)  %>%
+  gather(key = "Casos", value = "total_casos", -depto)
+
+data_covid9_seguros_depto_2
+```
+
+#Graficando la data transformada
+#-------------------------------------------------
+```{r}
+
+ggplot(data_covid9_seguros_depto_1, aes(depto, total_casos))+
+     geom_bar( aes(fill= Casos), position = "dodge", stat = "identity", show.legend = TRUE)+
+      scale_fill_manual(values = c("dark green", "green", "orange", "red"))+
+        theme(axis.text.x = element_text(angle = 45,size = 8))+
+         ggtitle("Relacion CASOS positivos , asegurados y no por departamento")+
+          labs( y = "Numero de casos")
+
+```
+
+#--
+```{r}
+
+ggplot(data_covid9_seguros_depto_2, aes(depto, total_casos))+
+     geom_bar( aes(fill= Casos), position = "dodge", stat = "identity", show.legend = TRUE)+
+      scale_fill_manual(values = c("dark green", "orange"))+
+        theme(axis.text.x = element_text(angle = 45,size = 8))+
+         ggtitle("Relacion CASOS positivos , asegurados y no por departamento")+
+          labs( y = "Numero de casos")+
+            labs( x = "Departamento")
+
+```
+
+El departamento con mas asegurados = Chuquisaca con un 85%
+                        del total de casos se han recuperado = 39 %
+                        
+El departamento con mas recuperados es Santa Cruz = 80%
+                                      asegurados = 58%
+                                      
+El departamento x con más personas aseguradas tuvieron más recuperados. (V/F) = Falso
+
+no hay una incidencia de los asegurados sobre los recuperados
+Por que no implica que una persona al estar asegurada se deba recuperar
+
+conclusion.- Colapsó el sistema de salud en Bolivia y ya hay muertos en las calles
+conclusion.- La recuperacion de las personas con covid9 seria tambien en funcion a la inmunidad de cada persona
+
