@@ -1,0 +1,128 @@
+---
+title: "Muestre los gráficos de la tendencia del número de casos de COVID-19 en Bolivia (Nacional y por departamento)"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+En primer lugar se debe cargar las librerías que se utilizarán en el presente trabajo.
+
+```{r}
+library(tidyverse)
+library(RColorBrewer) # Creación de paletas de colores
+```
+
+Se utiliza la base de datos de http://sitservicios.lapaz.bo/covid/, ya que se actualiza diariamente a nivel nacional y departamental. 
+
+# Número de casos de COVID-19 en Bolivia
+####  A partir del 10 de Marzo de 2020
+*** 
+
+### Importar dataset
+
+En R Studio de escritorio, se debe buscar la ruta del archivo de csv.
+
+```{r}
+## Commented for RStudio
+#file.choose()
+```
+
+Si es un archivo csv con punto y coma, entonces se elige read_csv2.
+
+```{r}
+# Para trabajar de R Studio en escritorio.
+#Casos_Bolivia <- read_csv2("/cloud/project/CasosBolivia.csv")
+```
+
+En R Studio Cloud, se utiliza la librería (readr).
+
+```{r}
+library(readr)
+Casos_Bolivia <- read_delim("CasosBolivia.csv", 
+    ";", escape_double = FALSE, trim_ws = TRUE)
+View(CasosDepBolivia)
+```
+
+### Gráfico
+
+Bueno, para tener una mejor impresión al momento de visualizar los resultados se crea un tema.
+
+```{r}
+tema_plot <- 
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    strip.background = element_rect(fill = "#eeeeee", color = NA)
+  ) 
+```
+
+Para visualizar dos o más series en un sólo gráfico, se debe crear un nuevo data frame y con la función gather() se seleccionará múltiples columnas y se une en pares clave-valor. 
+
+```{r}
+df <- Casos_Bolivia  %>%
+  select(DateTime, Confirmados, Recuperados, Muertes)  %>%
+  gather(key = "Estado", value = "Número de casos", -DateTime)
+head(df, 5)
+```
+
+A continuación, se grafica las series de tiempo.
+
+```{r}
+ggplot(df, aes(x = DateTime, y = `Número de casos`)) +
+  geom_line(aes(color = Estado), size = 1) +
+   labs(
+    title = "Número de casos de COVID-19 en Bolivia",
+    subtitle = "A partir del 10 de Marzo de 2020",
+    caption = "Datos de COVID-19 GAMLP (Bolivia)",
+    x = "Fecha") +
+   tema_plot +
+   theme(legend.position = "bottom", axis.title = element_text (size = 8))
+```
+
+
+# Número de casos confirmados de COVID-19 en Bolivia por Departamento
+####  A partir del 10 de Marzo de 2020
+*** 
+
+Al igual que en el caso anterior, se utiliza el mismo sitio web para la descarga del siguiente dataset.
+
+### Importar datos 
+
+```{r}
+#CasosDep_Bolivia <- read_csv2("CasosDepBolivia.csv")
+```
+
+```{r}
+library(readr)
+Casos_Bolivia <- read_delim("CasosBolivia.csv", 
+    ";", escape_double = FALSE, trim_ws = TRUE)
+View(CasosDepBolivia)
+```
+
+A continuación, se utiliza los mismos pasos del caso anterior.
+
+```{r}
+df_1 <- CasosDep_Bolivia %>%
+  select(DateTime, Beni,Chuquisaca, Cochabamba, `La Paz`, Oruro, Pando, Potosi, `Santa Cruz`, Tarija) %>%
+  gather(key = "Departamento", value = "Número de casos", -DateTime)
+head(df_1, 5)
+```
+
+### Gráfico
+
+```{r}
+ggplot(df_1, aes(x = DateTime, y = `Número de casos`)) +
+  geom_line(aes(color = Departamento), size = 1) +
+  labs(
+    title = "Número de casos confirmados de COVID-19 en Bolivia por Departamento",
+    subtitle = "A partir del 10 de Marzo de 2020",
+    caption = "Datos de COVID-19 GAMLP (Bolivia)",
+    x = "Fecha") +
+  tema_plot +
+  theme(legend.position = "bottom", axis.title = element_text (size = 8))
+```
+
+
