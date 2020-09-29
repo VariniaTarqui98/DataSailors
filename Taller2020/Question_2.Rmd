@@ -1,5 +1,5 @@
 ---
-title: "Tendencia del contagio y muertes por COVID-19 en Bolivia vs. Países vecinos"
+title: "Muestre el gráfico de la Tendencia del contagio y muertes por COVID-19 en Bolivia vs. Países vecinos"
 output: html_notebook
 ---
 
@@ -227,5 +227,6 @@ Se observa que Bolivia se mantiene en el último lugar de los casos confirmados 
 
 
 
+Nota aclaratoria: La mayoría de códigos utilizados en el presente trabajo son creación de Juan B. Mendoza Vega, en su artículo "Visualizando los contagios y muertes de Coronavirus (COVID-19) con R".  
 
 
